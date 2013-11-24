@@ -1,0 +1,33 @@
+source "http://rubygems.org"
+
+gem "atomic", '= 1.0.1'
+gem "sinatra", :require => false
+gem "sinatra-reloader", :require => false
+gem "sequel"
+gem "rack-session-sequel"
+gem "jdbc-mysql"
+gem "jdbc-derby"
+gem "json"
+gem "bcrypt-ruby"
+gem "rspec"
+gem "json-schema"
+gem "simplecov"
+gem "jruby-jars", "= 1.7.4"
+gem "jruby-openssl"
+gem "warbler"
+gem "nokogiri"
+gem "factory_girl"
+gem "rufus-scheduler"
+gem "rufus-lru"
+gem "net-ldap"
+gem "puma"
+
+gem "axlsx"
+gem "flying_saucer"
+
+group :test do
+  gem "ladle"
+end
+
+gem "net-http-persistent"
+gem "rjack-jackson"

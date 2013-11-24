@@ -1,0 +1,20 @@
+<%
+   section_id = "external_documents" if section_id.blank?
+%>
+<section id="<%= section_id %>" class="subrecord-form-dummy">
+
+  <h3><%= I18n.t("external_document._plural") %></h3>
+
+  <div class="subrecord-form-container">
+    <% external_documents.each_with_index do | document, index | %>
+      <%= readonly_context :external_document, document do |readonly| %>
+      <div class="subrecord-form-fields external-document">
+        <%= readonly.label_and_textfield "title" %>
+        <%= readonly.label_with_field "location", ((document["location"] =~ URI::regexp).nil?) ? document["location"] : link_to(document["location"], document["location"]) %>
+        <%= readonly.label_and_boolean "publish" %>
+      </div>
+      <% end %>
+    <% end %>
+  </div>
+
+</section>

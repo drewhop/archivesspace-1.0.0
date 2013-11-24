@@ -1,0 +1,18 @@
+<%= setup_context :object => JSONModel(:repository).from_hash(@repository['repository']), :title => @repository.repository['name'] %>
+
+<div class="row-fluid">
+  <div class="span3">
+    <%= render :partial => "repositories/sidebar" %>
+  </div>
+  <div class="span9">
+    <%= render :partial => "repositories/toolbar" %>
+    <div class="record-pane">
+      <h2><%= @repository.repository['name'] %>  <span class="label label-info"><%= I18n.t("repository._singular") %></span></h2>
+
+      <%= readonly_context :repository, @repository do |readonly| %>
+        <%= render :partial => "repositories/form_container", :locals => {:form => readonly} %>
+      <% end %>
+
+    </div>
+  </div>
+</div>

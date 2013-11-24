@@ -1,0 +1,18 @@
+<% define_template "agent_contact", jsonmodel_definition(:agent_contact) do |form| %>
+  <div class="subrecord-form-fields">
+    <%= form.label_and_textfield "name" %>
+    <%= form.label_and_select "salutation", form.possible_options_for('salutation', true) %>
+    <%= form.label_and_textfield "address_1" %>
+    <%= form.label_and_textfield "address_2" %>
+    <%= form.label_and_textfield "address_3" %>
+    <%= form.label_and_textfield "city" %>
+    <%= form.label_and_textfield "region" %>
+    <%= form.label_and_textfield "country" %>
+    <%= form.label_and_textfield "post_code" %>
+    <%= form.label_and_textfield "telephone" %>
+    <%= form.label_and_textfield "telephone_ext" %>
+    <%= form.label_and_textfield "fax" %>
+    <%= form.label_and_textfield "email" %>
+    <%= form.label_and_textarea "note" %>
+  </div>
+<% end %>

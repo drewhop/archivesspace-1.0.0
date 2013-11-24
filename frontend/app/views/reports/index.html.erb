@@ -1,0 +1,69 @@
+<%= setup_context :title => "Reports" %>
+
+<div class="row-fluid">
+  <div class="span12">
+    <div class="record-pane">
+      <h2>Reports</h2>
+
+      <div class="accordion" id="reportListing">
+        <% @report_data["reports"].values.each do | report | %>
+          <div class="accordion-group">
+            <div class="accordion-heading">
+              <a class="accordion-toggle" data-toggle="collapse" data-parent="#reportListing" href="#reportListing_<%= report["uri_suffix"] %>">
+                <%= I18n.t("reports.#{report["model"]}", :default => report["model"]) %>
+              </a>
+            </div>
+            <div id="reportListing_<%= report["uri_suffix"] %>" class="accordion-body collapse <% if @report_errors && @report && report['model'] === @report['model'] %>in<% end %>">
+              <div class="accordion-inner">
+                <p><%= report['description'] %></p>
+                <hr/>
+              <% if @report_errors && @report["uri_suffix"] === report["uri_suffix"] %>
+                <div class="alert alert-error">
+                  <% @report_errors['error'].each do | field, msgs |%>
+                  <div><%= I18n.t("reports.parameters.#{field}", :default => field) %> - <%= msgs.join(", ") %></div>
+                  <% end %>
+                </div>
+              <% end %>
+              <%= form_tag({:action => :download}, {:class => 'form-horizontal form-report'}) do |f| %>
+                <%= hidden_field_tag "report_key", report["uri_suffix"] %>
+                  <%= form_context "report_params", @report_params do |form| %>
+                    <%
+                       report_params = report["params"].reject{|p| ["format", "repo_id"].include?(p[0])}
+
+                       if report_params.length > 1
+                    %>
+                      <% report_params.each do | param | %>
+                        <div class="control-group <% if @report_errors &&  @report["uri_suffix"] === report["uri_suffix"] && @report_errors['error'].has_key?(param[0]) %>error<% end %>">
+                          <label class="control-label"><%= I18n.t("reports.parameters.#{param[0]}", :default => param[0]) %></label>
+                          <div class="controls">
+                            <% if param[1] === "Date" %>
+                              <%= form.textfield param[0].intern, @report_params[param[0]],  :class => 'date-field', :'data-format' => 'yyyy-mm-dd', :placeholder => 'yyyy-mm-dd' %>
+                            <% else %>
+                              <%= form.textfield param[0].intern, @report_params[param[0]] %>
+                            <% end %>
+                          </div>
+                        </div>
+                      <% end %>
+                      <hr/>
+                    <% end %>
+                    <div class="control-group">
+                      <label class="control-label">Format</label>
+                      <div class="controls">
+                        <%= form.select("format", options_for_select(@report_data["formats"].map{|format| [I18n.t("reports.formats.#{format}", :default => format), format]}, @report_params["format"])) %>
+                      </div>
+                    </div>
+                  <% end %>
+
+                  <div class="form-actions">
+                    <button type="submit" class="btn btn-small btn-primary">Download Report</button>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+    </div>
+  </div>
+</div>

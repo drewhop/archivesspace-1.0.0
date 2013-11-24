@@ -1,0 +1,9 @@
+.bootstrap
+/lib
+/build/*.jar
+/build/gems
+derby.log
+/backend.war
+/config/config.rb
+/db
+/coverage

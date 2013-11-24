@@ -1,0 +1,41 @@
+<%= form_for @archival_object, :as => "archival_object", :url => {:action => :update, :id => @archival_object.id}, :html => {:class => 'form-horizontal aspace-record-form', :id => 'archival_object_form'}.merge(update_monitor_params(@archival_object)) do |f| %>
+  <%= form_context :archival_object, @archival_object do |form| %>
+    <div class="row-fluid">
+      <div class="span3">
+        <%= render :partial => "sidebar" %>
+      </div>
+      <div class="span9">
+        <%= render :partial => "toolbar" %>
+        <div class="record-pane">
+          <%= render :partial => "archival_objects/form_container", :locals => {:form => form} %>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary"><%= I18n.t("archival_object._frontend.action.save") %></button>
+            <%= link_to I18n.t("actions.cancel"), :back, :class => "btn btn-cancel" %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% if @refresh_tree_node
+        node_data = {
+          'id' => @archival_object.id,
+          'uri' => @archival_object.uri,
+          'title' => @archival_object.display_string,
+          'level' => @archival_object.level==='otherlevel' ? @archival_object.other_level : I18n.t("enumerations.archival_record_level.#{@archival_object.level}", :default => @archival_object.level),
+          'jsonmodel_type' => @archival_object.jsonmodel_type,
+          'node_type' => @archival_object.jsonmodel_type,
+          'instance_types' => @archival_object.instances.map{|instance| I18n.t("enumerations.instance_instance_type.#{instance['instance_type']}", :default => instance['instance_type'])},
+          'containers' => @archival_object.to_hash["instances"].map{|instance| instance["container"]}.compact.map {|container|
+            container["type_1"] = I18n.t("enumerations.container_type.#{container["type_1"]}", :default => container["type_1"]) if container["type_1"]
+            container["type_2"] = I18n.t("enumerations.container_type.#{container["type_2"]}", :default => container["type_2"]) if container["type_2"]
+            container["type_3"] = I18n.t("enumerations.container_type.#{container["type_3"]}", :default => container["type_3"]) if container["type_3"]
+            container
+          },
+          'replace_new_node' => controller.action_name === 'create'
+        }
+    %>
+      <script>
+        AS.refreshTreeNode(<%= node_data.to_json.html_safe %>);
+      </script>
+    <% end %>
+  <% end %>
+<% end %>

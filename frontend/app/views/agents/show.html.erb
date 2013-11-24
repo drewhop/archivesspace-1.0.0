@@ -1,0 +1,112 @@
+<%= setup_context :object => @agent, :controller => :agents, :agent_type => @agent.agent_type, :title => @agent.title %>
+
+<div class="row-fluid">
+   <div class="span3">
+      <%= render :partial => "agents/sidebar" %>
+   </div>
+   <div class="span9">
+    <%= render :partial => "toolbar" %>
+    <div class="record-pane">
+     <%= readonly_context @agent.agent_type.intern, @agent do |readonly| %>
+        <h2><%= @agent.title %>  <span class="label label-info"><%= I18n.t("agent._singular") %></span></h2>
+
+        <%= render :partial => "shared/flash_messages" %>
+
+        <div class="row-fluid">
+          <section id="basic_information">
+            <h3><%= I18n.t("agent._frontend.section.basic_information") %></h3>
+
+            <div class="control-group">
+               <div class="control-label"><%= I18n.t("agent.type") %></div>
+               <div class="controls label-only"><%= I18n.t("agent.agent_type.#{@agent.agent_type}") %></div>
+            </div>
+            <%= readonly.label_and_boolean "publish" %>
+            <%= display_audit_info(@agent) %>
+          </section>
+        </div>
+
+        <% if @agent.dates_of_existence.length > 0 %>
+          <%= render :partial => "dates/show", :locals => { :dates => @agent.dates_of_existence, :section_title => I18n.t("agent.dates_of_existence"), :section_id => "dates_of_existence", :context => readonly } %>
+        <% end %>
+
+        <div class="row-fluid">
+          <section id="<%= @agent.agent_type %>_names">
+            <h3><%= I18n.t("agent_name._plural") %></h3>
+            <div class="accordion details" id="agent_name_accordion">
+              <% @agent.names.each_with_index do | name, index | %>
+                <div class="accordion-group">
+                  <div class="accordion-heading">
+                    <div class="row-fluid accordion-toggle collapsed" data-toggle="collapse" data-parent="#agent_name_accordion" href="#agent_name_<%= index %>">
+                      <div class="span1">
+                        <span class="icon-chevron-right"></span>
+                        <span class="icon-chevron-down"></span>
+                      </div>
+                      <div class="span6">
+                        <%= name['sort_name'] %>
+                      </div>
+                      <div class="span4"><%# Primary token can go here %></div>
+                    </div>
+                  </div>
+                  <div id="agent_name_<%= index %>" class="accordion-body collapse">
+                    <%= read_only_view(name.to_hash) %>
+                    <% if name['use_dates'].length > 0 %>
+                      <%= render :partial => "dates/show", :locals => { :dates => name['use_dates'], :section_id => "name_use_dates", :section_title => I18n.t("agent_name.use_dates"), :context => readonly } %>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </section>
+        </div>
+
+        <% if @agent.agent_contacts.length > 0 %>
+          <%= render :partial => "agents/contact_details" %>
+
+          <div class="row-fluid">
+            <section id="<%= @agent.agent_type %>_contact_details">
+              <h3><%= I18n.t("agent_contact._plural") %></h3>
+              <div class="accordion details" id="agent_contact_accordion">
+                <% @agent.agent_contacts.each_with_index do | contact, index | %>
+                  <div class="accordion-group">
+                    <div class="accordion-heading">
+                      <div class="row-fluid accordion-toggle collapsed" data-toggle="collapse" data-parent="#agent_contact_accordion" href="#agent_contact_<%= index %>">
+                        <div class="span1">
+                          <span class="icon-chevron-right"></span>
+                          <span class="icon-chevron-down"></span>
+                        </div>
+                        <div class="span7">
+                          <%= contact['name'] %>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="agent_contact_<%= index %>" class="accordion-body collapse">
+                      <%= readonly_context :agent_contact, contact do |readonly_contact| %>
+                        <%= readonly_contact.emit_template("agent_contact") %>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </section>
+          </div>
+        <% end %>
+
+        <% if @agent.notes.length > 0 %>
+          <%= render :partial => "notes/show", :locals => { :notes => @agent.notes, :context => readonly, :section_id => "#{@agent.agent_type}_notes" } %>
+        <% end %>
+
+        <% if !@agent['related_agents'].blank? %>
+          <%= render :partial => "related_agents/show", :locals => { :related_agents => @agent.related_agents, :context => readonly } %>
+        <% end %>
+
+        <% if @agent.external_documents.length > 0 %>
+          <%= render :partial => "external_documents/show", :locals => { :external_documents => @agent.external_documents, :section_id => "#{@agent.agent_type}_external_documents" } %>
+        <% end %>
+
+        <%= show_plugins_for(@agent, readonly) %>
+
+        <%= render :partial => "search/embedded", :locals => {:filter_term => {"agents" => @agent.title}.to_json, :heading_text => I18n.t("agent._frontend.section.search_embedded")} %>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+class Resource < Sequel::Model(:resource)
+  include ASModel
+  corresponds_to JSONModel(:resource)
+
+  include Identifiers
+  include Subjects
+  include Extents
+  include Dates
+  include ExternalDocuments
+  include RightsStatements
+  include Instances
+  include Deaccessions
+  include Agents
+  include Relationships
+  include Trees
+  include ResourceTrees
+  include Notes
+  include ExternalIDs
+  include CollectionManagements
+  include UserDefineds
+  include ComponentsAddChildren
+  include Classifications
+
+  tree_record_types :resource, :archival_object
+
+  agent_relator_enum("linked_agent_archival_record_relators")
+
+  tree_of(:resource, :archival_object)
+  set_model_scope :repository
+
+  define_relationship(:name => :spawned,
+                      :json_property => 'related_accessions',
+                      :contains_references_to_types => proc {[Accession]})
+
+
+  repo_unique_constraint(:ead_id,
+                         :message => "Must be unique",
+                         :json_property => :ead_id)
+
+end

@@ -1,0 +1,59 @@
+@import "variables";
+@import "mixins";
+
+body {
+  position: relative;
+}
+
+h2 > .label {
+  margin-top: @baseLineHeight / 2;
+  vertical-align: top;
+}
+
+.tab-content {
+  overflow: visible;
+}
+
+.record-pane {
+  padding: 10px;
+  margin: 0;
+  border: 1px solid #EEE;
+  border-top: none;
+
+  h2 {
+    margin-top: 0;
+  }
+}
+
+.action-show {
+  section section {
+    margin: 0 20px;
+  }
+}
+
+.table {
+  margin-bottom: 5px;
+}
+
+/* Tooltip overrides */
+.tooltip {
+  .tooltip-inner {
+    text-align: left;
+    line-height: @baseLineHeight;
+    font-weight: normal;
+
+    .tooltip-close {
+      float: right;
+      margin-left: 5px;
+      margin-bottom: 5px;
+      cursor: pointer;
+    }
+  }
+}
+.record-pane {
+  .tooltip {
+    &.left {
+      margin-left: -10px !important;
+    }
+  }
+}

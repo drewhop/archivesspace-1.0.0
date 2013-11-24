@@ -1,0 +1,40 @@
+<%= setup_context :object => @subject, :title => @subject.title %>
+
+<div class="row-fluid">
+   <div class="span3">
+      <%= render :partial => "sidebar" %>
+   </div>
+   <div class="span9">
+    <%= render :partial => "toolbar" %>
+    <div class="record-pane">
+     <%= readonly_context :subject, @subject do |readonly| %>
+      <h2><%= @subject.title %>  <span class="label label-info"><%= I18n.t("subject._singular") %></span></h2>
+
+      <%= render :partial => "shared/flash_messages" %>
+
+      <% define_template "subject", jsonmodel_definition(:subject) do |form, subject| %>
+        <section id="basic_information">
+          <h3><%= I18n.t("subject._frontend.section.basic_information") %></h3>
+
+          <%= form.label_and_textfield "authority_id" %>
+          <%= form.label_and_select "source", form.possible_options_for("source", true) %>
+          <%= form.label_and_textarea "scope_note" %>
+          <%= display_audit_info(@subject) %>
+        </section>
+      <% end %>
+
+      <%= readonly.emit_template "subject" %>
+
+      <%= render :partial => "terms/show", :locals => { :terms => @subject.terms, :heading_text => I18n.t("subject._frontend.section.terms")} %>
+
+      <% if @subject.external_documents.length > 0 %>
+        <%= render :partial => "external_documents/show", :locals => { :external_documents => @subject.external_documents, :section_id => "subject_external_documents_" } %>
+      <% end %>
+
+      <%= show_plugins_for(@subject, readonly) %>
+
+      <%= render :partial => "search/embedded", :locals => {:record => @subject, :filter_term => {"subjects" => @subject.title}.to_json, :heading_text => I18n.t("subject._frontend.section.search_embedded")} %>
+    <% end %>
+   </div>
+  </div>
+</div>

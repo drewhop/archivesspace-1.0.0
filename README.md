@@ -1,0 +1,442 @@
+ArchivesSpace README
+--------------------
+<http://archivesspace.org>
+
+# System requirements
+
+* Java 1.6 or higher; Java 1.7+ recommended
+* At least 1024 MB RAM allocated to the application
+* A [supported browser](https://github.com/archivesspace/archivesspace/wiki/Supported-browsers)
+
+ArchivesSpace has been tested on Linux (Red Hat and Ubuntu), Mac OS X, and
+Windows (XP, Windows 7, and Windows 8).
+
+MySQL is not required, but is **strongly** recommended for production use.
+
+# Getting started
+
+The quickest way to get ArchivesSpace up and running is to download
+the latest distribution `.zip` file from the following URL:
+
+  https://github.com/archivesspace/archivesspace/releases
+
+You will need to have Java 1.6 (or newer) installed on your machine.
+You can check your Java version by running the command:
+
+     java -version
+
+When you extract the `.zip` file, it will create a directory called
+`archivesspace`.  To run the system, just execute the appropriate
+startup script for your platform.  On Linux and OSX:
+
+     cd /path/to/archivesspace
+     ./archivesspace.sh
+
+and for Windows:
+
+     cd \path\to\archivesspace
+     archivesspace.bat
+
+This will start ArchivesSpace running in foreground mode (so it will
+shut down when you close your terminal window).  Log output will be
+written to the file `logs/archivesspace.out`.
+
+The first time it starts, the system will take a minute or so to start
+up.  Once it is ready, you should be able to point your browser to
+http://localhost:8080/ and access the ArchivesSpace staff interface.
+
+To start using the application, log in using the adminstrator account:
+
+* Username: `admin`
+* Password: `admin`
+
+Then, you can create a new repository by selecting "System" -> "Manage
+repositories" at the top right hand side of the screen.  From the
+"System" menu, you can perform a variety of administrative tasks, such
+as creating and modifying user accounts.  **Be sure to change the
+"admin" user's password at this time.**
+
+
+# Running ArchivesSpace as a Unix daemon
+
+The `archivesspace.sh` startup script doubles as an init script.  If
+you run:
+
+     archivesspace.sh start
+
+ArchivesSpace will run in the background as a daemon (logging to
+`logs/archivesspace.out` as before).  You can shut it down with:
+
+     archivesspace.sh stop
+
+You can even install it as a system-wide init script by creating a
+symbolic link:
+
+     cd /etc/init.d
+     ln -s /path/to/your/archivesspace/archivesspace.sh archivesspace
+
+Then use the appropriate tool for your distribution to set up the
+run-level symbolic links (such as `chkconfig` for RedHat or
+`update-rc.d` for Debian-based distributions).
+
+Note that you may want to edit archivesspace.sh to set the account
+that the system runs under, JVM options, and so on.
+
+
+# Running ArchivesSpace with a custom configuration file
+
+Under your `archivesspace` directory you will see a directory called
+`config` which contains a file called `config.rb`.  By modifying this
+file, you can override the defaults that ArchivesSpace ships with:
+changing things like the ports it listens on and where it puts its data.
+
+
+# Running ArchivesSpace against MySQL
+
+Out of the box, the ArchivesSpace distribution runs against an
+embedded database, but this is only suitable for demonstration
+purposes.  When you are ready to starting using ArchivesSpace with
+real users and data, you should switch to using MySQL.  MySQL offers
+significantly better performance when multiple people are using the
+system, and will ensure that your data is kept safe.
+
+
+## Download MySQL Connector
+
+ArchivesSpace requires the
+[MySQL Connector for Java](http://dev.mysql.com/downloads/connector/j/),
+which must be downloaded separately because of its licensing agreement.
+Download the Connector and place it in a location where ArchivesSpace can
+find it on its classpath:
+
+         $ cd lib
+         $ curl -Oq http://repo1.maven.org/maven2/mysql/mysql-connector-java/5.1.24/mysql-connector-java-5.1.24.jar
+
+Note that the version of the MySQL connector may be different by the
+time you read this.
+
+
+## Set up your MySQL database
+
+Next, create an empty database in MySQL and grant access to a dedicated
+ArchivesSpace user. The following example uses username `as`
+and password `as123`.
+
+**NOTE: WHEN CREATING THE DATABASE, YOU MUST SET THE DEFAULT CHARACTER
+ENCODING FOR THE DATABASE TO BE `utf8`.** This is particularly important
+if you use a MySQL client to create the database (e.g. Navicat, MySQL
+Workbench, phpMyAdmin, etc.).
+
+         $ mysql -uroot -p
+
+         mysql> create database archivesspace default character set utf8;
+         Query OK, 1 row affected (0.08 sec)
+
+         mysql> grant all on archivesspace.* to 'as'@'localhost' identified by 'as123';
+         Query OK, 0 rows affected (0.21 sec)
+
+Then, modify your `config/config.rb` file to refer to your MySQL
+database. When you modify your configuration file, **MAKE SURE THAT YOU
+SPECIFY THAT THE CHARACTER ENCODING FOR THE DATABASE TO BE `UTF-8`** as shown
+below:
+
+     AppConfig[:db_url] = "jdbc:mysql://localhost:3306/archivesspace?user=as&password=as123&useUnicode=true&characterEncoding=UTF-8"
+
+There is a database setup script that will create all the tables that
+ArchivesSpace requires.  Run this with:
+
+    scripts/setup-database.sh  # or setup-database.bat under Windows
+
+## Start ArchivesSpace
+
+Once your database is configured, start the application using
+`archivesspace.sh` (or `archivesspace.bat` under Windows).
+
+Confirm that ArchivesSpace is running correctly by accessing the
+following URLs in your browser:
+
+  - http://localhost:8089/ -- the backend
+  - http://localhost:8080/ -- the staff interface
+  - http://localhost:8081/ -- the public interface
+  - http://localhost:8090/ -- the Solr admin console
+
+
+# Backup and recovery
+
+## Creating backups using the provided script
+
+ArchivesSpace provides some simple scripts for backing up a single
+instance to a `.zip` file.  You can run:
+
+     scripts/backup.sh --output /path/to/backup-yyyymmdd.zip
+
+and the script will generate a file containing:
+
+  * A snapshot of the demo database (if you're using the demo
+    database)
+
+  * A snapshot of the Solr index and related indexer files
+
+If you are running against MySQL and have `mysqldump` installed, you
+can also provide the `--mysqldump` option.  This will read the
+database settings from your configuration file and add a dump of your
+MySQL database to the resulting `.zip` file.
+
+
+## Managing your own backups
+
+If you want more control over your backups, you can develop your own
+scripts.  ArchivesSpace stores all persistent data in the database, so
+as long as you have backups of your database then you can always
+recover.
+
+If you are running MySQL, the `mysqldump` utility can dump the database
+schema and data to a file.  It's a good idea to run this with the
+`--single-transaction` option to avoid locking your database tables
+while your backups run.
+
+If you are running with the demo database, you can create periodic
+database snapshots using the following configuration settings:
+
+     # In this example, we create a snapshot at 4am each day and keep
+     # 7 days' worth of backups
+     #
+     # Database snapshots are written to 'data/demo_db_backups' by
+     # default.
+     AppConfig[:demo_db_backup_schedule] = "0 4 * * *"
+     AppConfig[:demo_db_backup_number_to_keep] = 7
+
+Solr indexes can always be recreated from the contents of the
+database, but backing them up can reduce your recovery time if
+disaster strikes.  You can create periodic Solr snapshots using the
+following configuration settings:
+
+     # Create one snapshot per hour and keep only one.
+     #
+     # Solr snapshots are written to 'data/solr_backups' by default.
+     AppConfig[:solr_backup_schedule] = "0 * * * *"
+     AppConfig[:solr_backup_number_to_keep] = 1
+
+
+## Recovering from backup
+
+When recovering an ArchivesSpace installation from backup, you will
+need to restore:
+
+  * Your database (either the demo database or MySQL)
+
+  * The search indexes and related indexer files
+
+Of the two, the database backup is the most crucial--search indexes
+are worth restoring if you have backups, but they can be recreated
+from scratch if necessary.
+
+
+### Recovering your database
+
+If you are using MySQL, recovering your database just requires loading
+your `mysqldump` backup into an empty database.  If you are using the
+`scripts/backup.sh` script (described above), this dump file is named
+`mysqldump.sql` in your backup `.zip` file.
+
+To load a MySQL dump file, follow the directions in *Set up your MySQL
+database* to create an empty database with the appropriate
+permissions.  Then, populate the database from your backup file using
+the MySQL client:
+
+    mysql -uarchivesspace -p < mysqldump.sql
+    
+(change the username as required and enter your password when
+prompted).
+
+
+If you are using the demo database, your backup `.zip` file will
+contain a directory called `demo_db_backups`.  Each subdirectory of
+`demo_db_backups` contains a backup of the demo database.  To
+restore from a backup, copy its `archivesspace_demo_db` directory back
+to your ArchivesSpace data directory.  For example:
+
+     cp -a /unpacked/zip/demo_db_backups/demo_db_backup_1373323208_25926/archivesspace_demo_db \
+           /path/to/archivesspace/data/
+
+
+
+### Recovering the search indexes and related indexer files
+
+This step is optional since indexes can be rebuilt from the contents
+of the database.  However, recovering your search indexes can reduce
+the time needed to get your system running again.
+
+The backup `.zip` file contains two directories used by the
+ArchivesSpace indexer:
+
+  * solr.backup-[timestamp]/snapshot.[timestamp] -- a snapshot of the
+    index files.
+
+  * solr.backup-[timestamp]/indexer_state -- the files used by the
+    indexer to remember what it last indexed.
+
+To restore these directories from backup:
+
+  * Copy your index snapshot to `/path/to/archivesspace/data/solr_index/index`
+
+  * Copy your indexer_state backup to `/path/to/archivesspace/data/indexer_state`
+
+For example:
+
+     mkdir -p /path/to/archivesspace/data/solr_index
+
+     cp -a /unpacked/zip/solr.backup-26475-1373323208/snapshot.20130709084008464 \ 
+           /path/to/archivesspace/data/solr_index/index
+
+     cp -a /unpacked/zip/solr.backup-26475-1373323208/indexer_state \ 
+           /path/to/archivesspace/data/
+
+
+
+# Re-creating indexes
+
+ArchivesSpace keeps track of what has been indexed by using the files
+under `data/indexer_state`.  If these files are missing, the indexer
+assumes that nothing has been indexed and reindexes everything.
+
+To force ArchivesSpace to reindex all records, just delete the
+directory `/path/to/archivesspace/data/indexer_state`.  Since the
+indexing process is cumulative, there's no harm in indexing the same
+document multiple times.
+
+
+# Resetting passwords
+
+Under the `scripts` directory you will find a script that lets you
+reset a user's password.  You can invoke it as:
+
+    scripts/password-reset.sh theusername newpassword  # or password-reset.bat under Windows
+
+If you are running against MySQL, you can use this command to set a
+password while the system is running.  If you are running against the
+demo database, you will need to shutdown ArchivesSpace before running
+this script.
+
+
+# Configuring LDAP authentication
+
+ArchivesSpace can manage its own user directory, but can also be
+configured to authenticate against one or more LDAP directories by
+specifying them in the application's configuration file.  When a user
+attempts to log in, each authentication source is tried until one
+matches.
+
+Here is a minimal example of an LDAP configuration:
+
+     AppConfig[:authentication_sources] = [{
+                                             :model => 'LDAPAuth',
+                                             :hostname => 'ldap.example.com',
+                                             :port => 389,
+                                             :base_dn => 'ou=people,dc=example,dc=com',
+                                             :username_attribute => 'uid',
+                                             :attribute_map => {:cn => :name},
+     }]
+
+With this configuration, ArchivesSpace performs authentication by
+connecting to `ldap://ldap.example.com:389/`, binding anonymously,
+searching the `ou=people,dc=example,dc=com` tree for `uid = <username>`. 
+
+If the user is found, ArchivesSpace authenticates them by
+binding using the password specified.  Finally, the `:attribute_map`
+entry specifies how LDAP attributes should be mapped to ArchivesSpace
+user attributes (mapping LDAP's `cn` to ArchivesSpace's `name` in the
+above example).
+
+Many LDAP directories don't support anonymous binding.  To integrate
+with such a directory, you will need to specify the username and
+password of a user with permission to connect to the directory and
+search for other users.  Modifying the previous example for this case
+looks like this:
+
+
+     AppConfig[:authentication_sources] = [{
+                                             :model => 'LDAPAuth',
+                                             :hostname => 'ldap.example.com',
+                                             :port => 389,
+                                             :base_dn => 'ou=people,dc=example,dc=com',
+                                             :username_attribute => 'uid',
+                                             :attribute_map => {:cn => :name},
+                                             :bind_dn => 'uid=archivesspace_auth,ou=system,dc=example,dc=com',
+                                             :bind_password => 'secretsquirrel',
+     }]
+
+
+Finally, some LDAP directories enforce the use of SSL encryption.  To
+configure ArchivesSpace to connect via LDAPS, change the port as
+appropriate and specify the `encryption` option:
+
+     AppConfig[:authentication_sources] = [{
+                                             :model => 'LDAPAuth',
+                                             :hostname => 'ldap.example.com',
+                                             :port => 636,
+                                             :base_dn => 'ou=people,dc=example,dc=com',
+                                             :username_attribute => 'uid',
+                                             :attribute_map => {:cn => :name},
+                                             :bind_dn => 'uid=archivesspace_auth,ou=system,dc=example,dc=com',
+                                             :bind_password => 'secretsquirrel',
+                                             :encryption => :simple_tls,
+     }]
+
+
+# Plug-ins and local customizations
+
+Under your `archivesspace` directory there is a directory called `plugins`.
+Each directory under the `plugins` directory contains a plug-in. In the
+standard distribution there are several plug-in directories, including
+`hello_world` and `local`. The `hello_world` directory contains a simple
+exemplar plug-in. The `local` directory is empty - this is a place to put
+any local customizations or extensions to ArchivesSpace without having to
+change the core codebase.
+
+Plug-ins are enabled by listing them in the configuration file. You will see the following line in
+`config/config.rb`:
+
+     # AppConfig[:plugins] = ['local']
+
+This states that by default the `local` plug-in is enabled and any files
+contained there will be loaded and available to the application. In order
+to enable other plug-ins simply override this configuration in
+`config/config.rb`. For example, to enable the `hello_world` plug-in, add
+a line like this (ensuring you remove the `#` at the beginning of the line):
+
+    AppConfig[:plugins] = ['local', 'hello_world']
+
+Note that the string must be identical to the name of the directory under the
+`plugins` directory. Also note that the ordering of plug-ins in the list
+determines the order that the plug-ins will be loaded.
+
+For more information about plug-ins and how to use them to override and
+customize ArchivesSpace, please see the README in the `plugins` directory.
+
+
+# Further documentation
+
+Additional documentation can be found on the ArchivesSpace
+wiki at [https://github.com/archivesspace/archivesspace/wiki](https://github.com/archivesspace/archivesspace/wiki).
+
+A document describing the architecture of ArchivesSpace is published
+at [https://github.com/archivesspace/archivesspace/blob/master/ARCHITECTURE.md](https://github.com/archivesspace/archivesspace/blob/master/ARCHITECTURE.md).
+
+The latest technical documentation, including API documentation and
+architecture notes, is published at
+[http://archivesspace.github.io/archivesspace/doc](http://archivesspace.github.com/archivesspace/doc/).
+
+# License
+
+ArchivesSpace is released under the [Educational Community License,
+version 2.0](http://opensource.org/licenses/ecl2.php). See the
+[COPYING](COPYING) file for more information.
+
+# Credits
+
+ArchivesSpace 1.0 has been developed by [Hudson Molonglo](http://www.hudsonmolonglo.com)
+in partnership with the New York University Libraries, UC San Diego
+Libraries, and University of Illinois Urbana-Champaign Library and with
+funding from the Andrew W. Mellon Foundation, organizational support from
+LYRASIS, and contributions from diverse persons in the archives community.

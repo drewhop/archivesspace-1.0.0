@@ -1,0 +1,50 @@
+<%
+   section_id = "deaccessions" if section_id.blank?
+%>
+
+<%= render :partial => "deaccessions/template" %>
+
+<section id="<%= section_id %>">
+  <h3><%= I18n.t("deaccession._plural") %></h3>
+  <div class="accordion details" id="deaccessions_accordion">
+    <%= context.list_for(context["deaccessions"], "deaccessions[]") do |deaccession, index| %>
+      <div class="accordion-group">
+        <div class="accordion-heading">
+          <div class="row-fluid collapsed accordion-toggle" data-toggle="collapse" data-parent="#deaccessions_accordion" href="#deaccession_<%= index %>">
+            <div class="span1">
+              <span class="icon-chevron-right"></span>
+              <span class="icon-chevron-down"></span>
+            </div>
+            <div class="span1">
+              <%= I18n.t("enumerations.deaccession_scope.#{deaccession["scope"]}", :default => deaccession["scope"]) %>
+            </div>
+            <div class="span3">
+              <% if deaccession["date"]['date_type'] === "expression" %>
+                <%= deaccession["date"]['expression'] %>
+              <% elsif deaccession["date"]['date_type'] === "single" %>
+                <%= deaccession["date"]['begin'] %>
+              <% else %>
+                <%= deaccession["date"]['begin'] %> &ndash; <%= deaccession["date"]['end'] %>
+              <% end %>
+            </div>
+            <div class="span7">
+              <% if !deaccession["extents"].blank? %>
+                <%= deaccession["extents"][0]['number'] %>
+                <%= I18n.t('enumerations.extent_extent_type.'+deaccession["extents"][0]['extent_type']) %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+        <div id="deaccession_<%= index %>" class="accordion-body collapse">
+          <div class="subrecord-form-container">
+            <%= read_only_view(deaccession) %>
+            <%= render :partial => "dates/show", :locals => { :dates =>[deaccession["date"]], :section_id => "deaccession_#{index}_date_", :section_title => I18n.t("deaccession.dates") } %>
+            <% if !deaccession["extents"].blank? %>
+              <%= render :partial => "extents/show", :locals => { :extents => deaccession["extents"], :section_id => "deaccession_#{index}_extents_" } %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</section>

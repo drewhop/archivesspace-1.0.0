@@ -1,0 +1,23 @@
+<div class="row-fluid">
+   <div class="span12">
+      <ul class="breadcrumb">
+         <li>
+            <%= link_to I18n.t("breadcrumb.home"), :controller => :welcome, :action => :index %><span class="divider">/</span>
+         </li>
+         <% trail.each_with_index do |crumb, i| %>
+            <% if i < trail.length - 1%>         
+               <li>
+                  <%= link_to crumb[0], crumb[1] %><span class="divider">/</span>
+               </li>
+            <% else %>
+               <li class="active"><%= crumb[0] %></li>
+            <% end %>
+         <% end %>
+        <% if flash.key? :spawned_from_accession %>
+          <li class="return-to-search pull-right">
+            <%= link_to "Return to Accession", {:controller => :accessions, :action => :show, :id => flash[:spawned_from_accession]}, :class => "btn btn-small" %>
+          </div>
+        <% end %>
+      </ul>
+   </div>
+</div>

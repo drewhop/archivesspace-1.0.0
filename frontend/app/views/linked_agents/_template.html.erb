@@ -1,0 +1,25 @@
+<%= render :partial => "terms/template", :locals => {:form => form, :show_preview => false} %>
+
+<% [{:type => :accession, :relator => true},
+    {:type => :resource, :relator => true},
+    {:type => :archival_object, :relator => true},
+    {:type => :event, :relator => false},
+    {:type => :digital_object, :relator => true},
+    {:type => :digital_object_component, :relator => true}].each do |defn| %>
+
+  <% define_template "#{defn[:type]}_linked_agent", jsonmodel_definition(defn[:type], "linked_agents") do |form| %>
+    <div class="subrecord-form-fields agent_links">
+      <%= form.label_and_select("role", form.possible_options_for("role", true), :field_opts => {:class => "linked_agent_role"}) %>
+      <% if defn[:relator] %>
+        <%= form.label_and_select("relator", form.possible_options_for("relator", true)) %>
+      <% end %>
+      <%= render :partial => "agents/linker", :locals => {:form => form} %>
+
+      <div class="agent-terms subrecord-form-container" style="display: none">
+        <%= render :partial => "shared/subrecord_form", :locals => {:form => form, :name => "terms", :heading_text => I18n.t("subject._frontend.section.terms")} %>
+      </div>
+
+    </div>
+  <% end %>
+
+<% end %>

@@ -1,0 +1,19 @@
+<%= render(:layout => '/shared/sidebar',
+           :locals => {
+             :record_type => 'location_batch',
+             :record => {},
+             :suppress_basic_information => true,
+             :suppress_submit_buttons => true,
+           }) do |sidebar| %>
+
+
+    <%= sidebar.render_for_view_and_edit(:subrecord_type => 'location', :property => :none, :anchor => 'location') %>
+    <%= sidebar.render_for_view_and_edit(:subrecord_type => 'ranges', :property => :none, :anchor => 'ranges') %>
+
+    <li class="form-actions">
+      <div class="btn-group <% if ["new", "create"].include?(controller.action_name) %>btn-submit-group<% end %>">
+        <button type="submit" class="btn btn-primary" style="width: 70%;"><%= I18n.t("location_batch._frontend.action.create") %></button>
+        <button type="button" class="btn preview-locations" style="width: 30%;"><%= I18n.t("location_batch._frontend.action.preview_short") %></button>
+      </div>
+    </li>
+<% end %>

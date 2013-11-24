@@ -1,0 +1,48 @@
+<%
+   record_title = @archival_object.title
+   set_title(record_title)
+%>
+
+<div class="title-pane">
+  <div class="row-fluid">
+    <div class="span3">
+
+    </div>
+    <div class="span9">
+      <h2><%= record_title %></h2>
+    </div>
+  </div>
+</div>
+<div class="content-pane">
+  <div class="row-fluid">
+    <div class="span3">
+      <%= render(:partial => 'navlist',
+                 :locals => {
+                   :record_type => 'archival_object',
+                   :record => @archival_object,
+                   :entries => [
+                     {:property => 'dates', :subrecord_type => 'date', :anchor => 'dates'},
+                     {:property => 'extents', :subrecord_type => 'extent', :anchor => 'extents'},
+                     {:property => 'published_agents', :subrecord_type => 'agent', :anchor => 'linked_agents'},
+                     {:property => 'subjects', :subrecord_type => 'subject', :anchor => 'subjects'},
+                     {:property => 'published_notes', :subrecord_type => 'note', :anchor => 'notes'},
+                     {:property => 'published_external_documents', :subrecord_type => 'external_document', :anchor => 'external_documents'},
+                     {:property => 'instances', :subrecord_type => 'instance', :anchor => 'instances'},
+                   ]
+                 })
+       %>
+    </div>
+    <div class="span9">
+      <%= render :partial => "archival_object", 
+                 :locals => {
+                   :archival_object => @archival_object,
+                   :show_components => true,
+                   :show_full_component => true
+                 } %>
+
+      <br/>
+      <br/>
+
+    </div>
+  </div>
+</div>

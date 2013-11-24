@@ -1,0 +1,49 @@
+<%= link_to_help :topic => "digital_object_component" %>
+
+<h2>
+  <%= @digital_object_component.display_string.blank? ? I18n.t("digital_object_component._singular") : @digital_object_component.display_string %>
+  <span class="label label-info"><%= I18n.t("digital_object_component._singular") %></span>
+</h2>
+
+<%= render :partial => "shared/form_messages", :locals => {:form => form} %>
+
+<fieldset>
+
+  <%= form.hidden_input "parent", nil, {"data-base-name" => "digital_object_component[parent]", "class" => "hidden-parent-uri"} %>
+  <%= form.hidden_input "digital_object" %>
+  <%= form.hidden_input "position" %>
+  <%= hidden_field_tag "id", @digital_object_component.id %>
+
+  <% define_template("digital_object_component", jsonmodel_definition(:digital_object_component)) do |form| %>
+    <section id="basic_information">
+      <h3>
+        <%= I18n.t("digital_object_component._frontend.section.basic_information") %>
+        <%= link_to_help :topic => "digital_object_component_basic_information" %>
+      </h3>
+      <%= form.label_and_textfield "label", :required => :conditionally %>
+      <%= form.label_and_textarea "title", :required => :conditionally %>
+      <%= form.label_and_textfield "component_id" %>
+      <%= form.label_and_boolean "publish", {}, form.default_for("default") %>
+      <%= form.label_and_select "language", form.possible_options_for("language", true) %>
+
+    </section>
+  <% end %>
+
+  <% form.emit_template("digital_object_component") %>
+
+  <%= render :partial => "shared/subrecord_form", :locals => {:form => form, :name => "file_versions"} %>
+
+  <%= render :partial => "shared/subrecord_form", :locals => {:form => form, :name => "dates", :template => "archival_record_date", :required => :conditionally} %>
+  <%= render :partial => "shared/subrecord_form", :locals => {:form => form, :name => "extents"} %>
+
+  <%= render :partial => "shared/subrecord_form", :locals => {:form => form, :name => "linked_agents", :template => "digital_object_component_linked_agent"} %>
+  <%= render :partial => "shared/subrecord_form", :locals => {:form => form, :name => "subjects", :template => "subrecord_subject"} %>
+
+  <%= render :partial => "notes/form", :locals => {:form => form, :all_note_types => note_types_for(form['jsonmodel_type'])} %>
+
+  <%= render :partial => "shared/subrecord_form", :locals => {:form => form, :name => "external_documents"} %>
+  <%= render :partial => "shared/subrecord_form", :locals => {:form => form, :name => "rights_statements"} %>
+
+  <%= form_plugins_for("digital_object_component", form) %>
+
+</fieldset>
